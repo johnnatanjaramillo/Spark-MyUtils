@@ -22,19 +22,18 @@ object SplitCollection {
     val myCollection: DataFrame = sparkSession.read.csv(args(0))
 
     val pathFiles = args(3) + "/" + args(2) + "_"
-    (0 to args(1).toInt).foreach(i =>
-      this.writeresult(pathFiles + i.toString, myCollection.schema.toArray.map(e => e.name).mkString(",")))
+    (0 until args(1).toInt).foreach(i =>
+      this.writeresult(pathFiles + i.toString, myCollection.schema.toArray.map(e => e.name).mkString(",") + "\n"))
 
     var temp = 0
-    myCollection.foreach(r => {
-      if (temp < args(1).toInt) {
-        this.writeresult(pathFiles + temp.toString, r.mkString(","))
-        temp += 1
-      } else {
-        temp = 0
-        this.writeresult(pathFiles + temp.toString, r.mkString(","))
-      }
-    })
+    val tempCollection = myCollection.toLocalIterator()
+
+    while (tempCollection.hasNext)
+      (0 until args(1).toInt).foreach(i =>
+        if(tempCollection.hasNext)
+          this.writeresult(pathFiles + i.toString, tempCollection.next().mkString(",") + "\n"))
+
+
     sparkSession.stop()
   }
 
